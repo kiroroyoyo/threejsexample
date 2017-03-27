@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>用函数作图</title>
+</head>
+<body>
+		<div id="container"></div>
+
+		<script src="js/three.js"></script>
+
+		<script src="js/hilbert3D.js"></script>
+
+		<script src="js/Detector.js"></script>
+		<script src="js/stats.min.js"></script>
+
+		<script>
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+			var renderer, scene, camera, stats;
+			var objects = [];
+			var WIDTH = window.innerWidth,
+				HEIGHT = window.innerHeight;
+			var points = [];
+			init();
+			animate();
+			function init() {
+				camera = new THREE.PerspectiveCamera( 60, WIDTH / HEIGHT, 1, 200 );
+				camera.position.z = 150;
+				scene = new THREE.Scene();
+				scene.fog = new THREE.Fog( 0x111111, 150, 200 );
+				root = new THREE.Object3D();
+
+				
+				linepoints();
+
+				var spline = new THREE.CatmullRomCurve3( points );
+				var geometrySpline = new THREE.Geometry();
+				for ( var i = 0; i < points.length ; i ++ ) {
+					var index = i / ( points.length );
+					var position = spline.getPoint( index );
+					geometrySpline.vertices[ i ] = new THREE.Vector3( position.x, position.y, position.z );
+				}
+				geometrySpline.computeLineDistances();
+
+
+				var object = new THREE.Line( geometrySpline, new THREE.LineDashedMaterial( { color: 0xffffff, dashSize: 1, gapSize: 0.5 } ) );
+
+
+				objects.push( object );
+				scene.add( object );
+
+				var object = new THREE.Line( geometrySpline, new THREE.LineBasicMaterial( { color: 0xffffff} ) );
+				object.position.x = 10;
+				object.position.y = 20;
+				object.position.z = 10;
+
+				objects.push( object );
+				scene.add( object );
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setClearColor( 0x111111 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( WIDTH, HEIGHT );
+				var container = document.getElementById( 'container' );
+				container.appendChild( renderer.domElement );
+				stats = new Stats();
+				container.appendChild( stats.dom );
+				//
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+			function linepoints(){
+				for (var b = 0; b <= 360; b++) {
+					var pointx = x(b,j9(b));
+					var pointy = y(b,j9(b));
+					var pointz = Math.pow(4*(pointx*pointx + pointy*pointy),0.33);
+					points.push(new THREE.Vector3( pointx, pointy, -pointz ));
+				}
+			}
+			function j9(o){
+				return 20*Math.cos(6*o*Math.PI/180);
+			}
+			//极坐标转x/y坐标 
+			function x(o,p){
+				return p*Math.cos(o*Math.PI/180);
+			}
+			function y(o,p){
+				return p*Math.sin(o*Math.PI/180);
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+			function animate() {
+				requestAnimationFrame( animate );
+				render();
+				stats.update();
+			}
+			function render() {
+				var time = Date.now() * 0.001;
+				for ( var i = 0; i < objects.length; i ++ ) {
+					var object = objects[ i ];
+					//object.rotation.x = 0.25 * time * ( i%2 == 1 ? 1 : -1);
+					object.rotation.x = 0.5 * time;
+					object.rotation.z = 0.5 * time;
+				}
+				renderer.render( scene, camera );
+			}
+	</script>
+
+</body>
+</html>
