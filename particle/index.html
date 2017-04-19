@@ -92,8 +92,8 @@
 
 					TweenMax.to(
                         particle.position,
-                        1.5*timerandom,
-                        {y:'-600',z:'300',delay:1.8+timerandom,} 
+                        0.5*timerandom,
+                        {y:'-=1500',z:'300',delay:1.8+timerandom,ease:Power2.easeIn} 
                     );
 					group.add( particle );
 				}

@@ -111,8 +111,8 @@
                     );
 					TweenMax.to(
                         particle.position,
-                        timerandom+1,
-                        {y:'-600',z:'300',delay:1.8+timerandom,} 
+                        timerandom,
+                        {y:'-=1500',z:'300',delay:1.8+timerandom,ease:Power1.easeIn} 
                     );
 					group.add( particle );
 				}
@@ -199,7 +199,7 @@
 			}
 
 			function j9(o){
-				return 500*Math.cos(6*o*Math.PI/180);
+				return 600*Math.cos(6*o*Math.PI/180);
 			}
 			//极坐标转x/y坐标 
 			function x(o,p){
