@@ -67,7 +67,7 @@
 				scene.add( group );
 
 				//创建一个球型用作最后的形状
-				var geometry = new THREE.SphereGeometry( 500, 50, 50 );
+				var geometry = new THREE.SphereGeometry( 500, 20, 20 );
 				var vl = geometry.vertices.length;
 
 				for ( var i = 0; i < vl; i++ ) {
@@ -84,6 +84,8 @@
 					particle.scale.x = particle.scale.y = Math.random() * 6 + 3;
 					var timerandom = 1*Math.random();
 					//为每个点加动画
+
+
 					TweenMax.to(
                         particle.position,
                         timerandom,
