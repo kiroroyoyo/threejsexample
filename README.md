@@ -1,2 +1,2 @@
 # threejsexample
- ![image](./fliter/asset/dot2.png)
+ ![image](./particle/asset/dot2.png)
