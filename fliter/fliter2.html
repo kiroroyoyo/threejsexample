@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - materials - HDR texture</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #fff;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+
+				background-color: #000;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+		<script src="js/build/three.js"></script>
+
+		<script src="js/Detector.js"></script>
+
+		<!-- HDR fragment shader -->
+
+		<script id="fs-hdr" type="x-shader/x-fragment">
+
+			precision mediump float;    
+			varying vec2 vUv;    
+			uniform sampler2D tDiffuse;
+			uniform vec2 TexSize;       
+			vec2 mosaicSize = vec2(8,8);
+			void main()                
+			{                           
+				vec2 intXY = vec2(vUv.x*TexSize.x, vUv.y*TexSize.y);   
+				vec2 XYMosaic = vec2(floor(intXY.x/mosaicSize.x)*mosaicSize.x,floor(intXY.y/mosaicSize.y)*mosaicSize.y);  
+				vec2 UVMosaic = vec2(XYMosaic.x/TexSize.x,XYMosaic.y/TexSize.y);    
+				vec4 baseMap = texture2D(tDiffuse,UVMosaic);                       
+				gl_FragColor = baseMap;                                              
+			}                                 
+
+
+
+
+				
+
+
+		</script>
+
+		<!-- HDR vertex shader -->
+
+		<script id="vs-hdr" type="x-shader/x-vertex">
+
+			varying vec2 vUv;
+
+			void main()	{
+
+				vUv  = uv;
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+
+		</script>
+
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var container, stats;
+
+			var camera, scene, renderer;
+			var materialHDR, quad;
+
+			var sign = 1, rate = 1;
+
+			var clock = new THREE.Clock();
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = 900;
+
+				scene = new THREE.Scene();
+
+				var texture = new THREE.TextureLoader().load( "1.png" );
+				texture.minFilter = THREE.LinearFilter;
+				texture.magFilter = THREE.NearestFilter;
+
+				materialHDR = new THREE.ShaderMaterial( {
+
+					uniforms: {
+						tDiffuse:  { value: texture },
+						exposure:  { value: 0.125 },
+						brightMax: { value: 0.5 }
+
+						},
+					vertexShader: getText( 'vs-hdr' ),
+					fragmentShader: getText( 'fs-hdr' )
+
+				} );
+
+				var plane = new THREE.PlaneBufferGeometry( 512, 768 );
+
+				quad = new THREE.Mesh( plane, materialHDR );
+				quad.position.z = -100;
+				scene.add( quad );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function getText( id ) {
+
+				return document.getElementById( id ).textContent;
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+			function render() {
+
+				delta = clock.getDelta() * 5;
+
+				if ( materialHDR.uniforms.exposure.value > 0 || materialHDR.uniforms.exposure.value < 1 ) {
+
+					rate = 1;
+
+				} else {
+
+					rate = 0.25;
+
+				}
+
+				if ( materialHDR.uniforms.exposure.value > 5 || materialHDR.uniforms.exposure.value <= 0 ) {
+
+					sign *= -1;
+
+				}
+
+				materialHDR.uniforms.exposure.value += sign * rate * delta;
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>

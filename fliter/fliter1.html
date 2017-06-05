@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - materials - HDR texture</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #fff;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+
+				background-color: #000;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+		<script src="js/build/three.js"></script>
+
+		<script src="js/Detector.js"></script>
+
+		<!-- HDR fragment shader -->
+
+		<script id="fs-hdr" type="x-shader/x-fragment">
+
+			uniform sampler2D   tDiffuse;
+			uniform float       exposure;
+			uniform float       brightMax;
+
+			varying vec2  vUv;
+
+
+			void main()	{
+
+				vec4 color = texture2D( tDiffuse, vUv );
+				//color.xyz  = decode_pnghdr( color );
+
+				// apply gamma correction and exposure
+				// gl_FragColor = vec4( pow( exposure * color.xyz, vec3( 0.474 ) ), 1.0 );
+
+				// Perform tone-mapping
+				// float Y = dot(vec4(0.30, 0.59, 0.11, 0.0), color);
+				//float YD = exposure * (exposure/brightMax + 1.0) / (exposure + 1.0);
+				//color *= YD;
+				
+				// gl_FragColor = vec4( color.xyz, 1.0 );
+				// 黑白滤镜 加权平均
+				float Z = 0.7 * color.r + 0.2 * color.g + 0.1 * color.b;
+				gl_FragColor = vec4( vec3(Z,Z,Z), 1.0 );
+				
+				// 亮度滤镜
+				 //gl_FragColor = vec4((color.rgb + vec3(brightMax)), color.w);
+				// 曝光滤镜
+				// gl_FragColor = vec4(color.rgb * pow(2.0, exposure), color.w);
+				
+			}
+
+
+
+
+				
+
+
+		</script>
+
+		<!-- HDR vertex shader -->
+
+		<script id="vs-hdr" type="x-shader/x-vertex">
+
+			varying vec2 vUv;
+
+			void main()	{
+
+				vUv  = uv;
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+
+		</script>
+
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var container, stats;
+
+			var camera, scene, renderer;
+			var materialHDR, quad;
+
+			var sign = 1, rate = 1;
+
+			var clock = new THREE.Clock();
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = 900;
+
+				scene = new THREE.Scene();
+
+				var texture = new THREE.TextureLoader().load( "1.png" );
+				texture.minFilter = THREE.LinearFilter;
+				texture.magFilter = THREE.NearestFilter;
+
+				materialHDR = new THREE.ShaderMaterial( {
+
+					uniforms: {
+						tDiffuse:  { value: texture },
+						exposure:  { value: 0.125 },
+						brightMax: { value: 0.5 }
+
+						},
+					vertexShader: getText( 'vs-hdr' ),
+					fragmentShader: getText( 'fs-hdr' )
+
+				} );
+
+				var plane = new THREE.PlaneBufferGeometry( 512, 768 );
+
+				quad = new THREE.Mesh( plane, materialHDR );
+				quad.position.z = -100;
+				scene.add( quad );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function getText( id ) {
+
+				return document.getElementById( id ).textContent;
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+			function render() {
+
+				delta = clock.getDelta() * 5;
+
+				if ( materialHDR.uniforms.exposure.value > 0 || materialHDR.uniforms.exposure.value < 1 ) {
+
+					rate = 1;
+
+				} else {
+
+					rate = 0.25;
+
+				}
+
+				if ( materialHDR.uniforms.exposure.value > 5 || materialHDR.uniforms.exposure.value <= 0 ) {
+
+					sign *= -1;
+
+				}
+
+				materialHDR.uniforms.exposure.value += sign * rate * delta;
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
