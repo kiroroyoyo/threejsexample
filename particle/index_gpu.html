@@ -26,7 +26,6 @@
 		<script id="fs" type="x-shader/x-fragment">
 
 			uniform sampler2D texture;
-			varying vec3 vPos;
 			varying vec3 vexcolor;
 
 			void main() {			
@@ -46,7 +45,7 @@
 			attribute vec3 position2; // 目标顶点位置
 			attribute vec3 colors; // 目标顶点颜色
 			uniform float val; // 动画运行时间
-			 vec3 vPos; // 将顶点位置传输给片元着色器
+			 vec3 vPos; 
 			varying vec3 vexcolor;
 
 			void main() {
