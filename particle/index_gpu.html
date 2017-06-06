@@ -24,7 +24,7 @@
 		<script src="js/tween.min.js"></script>
 		<script src="js/stats.min.js"></script>
 		<script id="fs" type="x-shader/x-fragment">
-			//uniform vec3 color;
+
 			uniform sampler2D texture;
 			varying vec3 vPos;
 			varying vec3 vexcolor;
@@ -38,8 +38,9 @@
 				gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
 
 			}
-
 		</script>
+
+
 		<script id="vs" type="x-shader/x-vertex">
 			attribute float size; // 粒子尺寸
 			attribute vec3 position2; // 目标顶点位置
@@ -151,27 +152,33 @@
 					}
 					
 				}
-				object1.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
+				
 				object1.addAttribute('position2', new THREE.BufferAttribute(position2, 3));
+
 				object1.addAttribute( 'colors', new THREE.BufferAttribute( colors, 3 ));
+
+				object1.addAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
 				var uniforms = {
-					//color:{value: new THREE.Color(0xffffff)},
 					texture:{value: new THREE.TextureLoader().load( "../docs/asset/dot2.png")},
-					//texture:{value: new THREE.Texture(program)},
 					val: {value: 1.0}
 				};
+
 				var shaderMaterial = new THREE.ShaderMaterial({
 					uniforms:       uniforms,
 					vertexShader:   document.getElementById('vs').textContent,
 					fragmentShader: document.getElementById('fs').textContent,
-					//blending:       THREE.AdditiveBlending,
 					depthTest:      false,
 					transparent:    true
 				});
+
+
 				particleSystem = new THREE.Points(object1, shaderMaterial);
+
+
 				particleSystem.position.z = -50;
 				pos = {val: 1};
-				tween = new TWEEN.Tween(pos).to({val: 0}, 500).delay(500).onUpdate(callback);
+				tween = new TWEEN.Tween(pos).to({val: 0}, 1000).delay(500).onUpdate(callback);
 				tween.start();
 
 				function callback(){
