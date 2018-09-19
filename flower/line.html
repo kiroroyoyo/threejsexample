@@ -4,12 +4,16 @@
 	<meta charset="utf-8">
 	<title>曲线</title>
 	<style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+		}
 		.btn-list{
 			position: absolute;
 			top: 0;
 			right: 0;
-			background-color: #999;
-			padding: 12px 6px;
+			background-color: #000;
+			padding: 6px;
 		}
 		.btn-list li{
 			list-style: none;
@@ -19,11 +23,12 @@
 		}
 		.btn-list li:hover{
 			color: #000;
+			background-color: #fff;
 		}
 	</style>
 </head>
 <body>
-<canvas id="canvas">
+<canvas id="canvas" width="1000px" height="1000px">
 	
 </canvas>
 <ul class="btn-list">
@@ -38,33 +43,42 @@
 	<li id="spiral3">双曲螺线</li>
 </ul>
 <script>
-		var canvas = document.getElementById('canvas');
-		canvas.width = 1000;
-       	canvas.height = 1000;
-		var context = canvas.getContext('2d');
+		const canvas = document.getElementById('canvas');
+		const width = canvas.width;
+		const height = canvas.height;
+		const context = canvas.getContext('2d');
+		if(window.devicePixelRatio) {
+			canvas.style.width = width + "px";
+			canvas.style.height = height + "px";
+			canvas.width = width * window.devicePixelRatio;
+			canvas.height = height * window.devicePixelRatio;
+			context.scale(window.devicePixelRatio, window.devicePixelRatio);
+		}
+	
 		context.strokeStyle = 'black';
-		context.lineWidth =  1;
-		var fun = j3;  
-		var bnmax = 45;  //为伯努利双纽线设定的阈值
-		var max = 360; //正常极坐标系最大值
-		var min = 0; //正常极坐标系最小值
-		var rx = 300;  //原点所在位置
-		var ry = 300; //原点所在位置
-		var b = min; 
-		var px;  //当前x坐标 调试用
-		var py;  //当前y坐标 调试用
-		var a;
-		var rate=1; //动画速度
-		var flag=false; //true表示正在动画过程中
+		context.lineWidth =  2;
+		// context.scale(0,5, 0.5);
+		let fun = j3;   //指向不同的极坐标函数
+		let bnmax = 45;  //为伯努利双纽线设定的阈值
+		let max = 360; //正常极坐标系最大值
+		let min = 0; //正常极坐标系最小值
+		let rx = 300;  //原点所在位置
+		let ry = 300; //原点所在位置
+		let b = min; 
+		let px;  //当前x坐标 调试用
+		let py;  //当前y坐标 调试用
+		let a;
+		let rate = 2; //动画速度
+		let flag = false; //true表示正在动画过程中
 
 		//心形线
 		document.getElementById('heart').addEventListener("click",function(){
 			if (flag) {alert("等待动画完成"); return;}
 			clear();
-			b=min;
+			b = min;
 			max = 360;
 			fun = j1;
-			flag=true;
+			flag = true;
 			jAnimate();
 		})
 
@@ -72,8 +86,8 @@
 		document.getElementById('star').addEventListener("click",function(){
 			if (flag) {alert("等待动画完成"); return;}
 			clear();
-			b=min;
-			flag=true;
+			b = min;
+			flag = true;
 			jStarAnimate();
 		})
 
@@ -83,7 +97,7 @@
 			clear();
 			b = -bnmax; 
 			fun = j3;  
-			flag=true;
+			flag = true;
 			jMinusAnimate();
 		})
 
@@ -94,7 +108,7 @@
 			b=min;
 			max = 180;
 			fun = j5;
-			flag=true;
+			flag = true;
 			jAnimate();
 		})
 
@@ -105,17 +119,17 @@
 			b=min;
 			max = 360;
 			fun = j4;
-			flag=true;
+			flag = true;
 			jAnimate();
 		})
 		//玫瑰线
 		document.getElementById('rose3').addEventListener("click",function(){
 			if (flag) {alert("等待动画完成"); return;}
 			clear();
-			b=min;
+			b = min;
 			max = 360;
 			fun = j9;
-			flag=true;
+			flag = true;
 			jAnimate();
 		})
 
@@ -126,7 +140,7 @@
 			b=min;
 			max = 960;
 			fun = j6;
-			flag=true;
+			flag = true;
 			jAnimate();
 		})
 
@@ -134,10 +148,10 @@
 		document.getElementById('spiral2').addEventListener("click",function(){
 			if (flag) {alert("等待动画完成"); return;}
 			clear();
-			b=min;
+			b = min;
 			max = 1440;
 			fun = j7;
-			flag=true;
+			flag = true;
 			jAnimate();
 		})
 
@@ -145,41 +159,41 @@
 		document.getElementById('spiral3').addEventListener("click",function(){
 			if (flag) {alert("等待动画完成"); return;}
 			clear();
-			b=min;
+			b = min;
 			max = 1440;
 			fun = j8;
-			flag=true;
+			flag = true;
 			jAnimate();
 		})
 
 
 
 
-		//极坐标系下的函数
+		//极坐标系下的动画函数
 		function jAnimate(){
-			if (b==min) {
-				context.moveTo(rx+x(b,fun(b)),ry+y(b,fun(b)));
+			if (b == min) {
+				context.moveTo(rx + x(b,fun(b)), ry + y(b, fun(b)));
 			}
-			b=b+rate;
-			context.lineTo(rx+x(b,fun(b)),ry+y(b,fun(b)));
+			b = b + rate;
+			context.lineTo(rx + x(b,fun(b)), ry + y(b, fun(b)));
 			context.stroke();
 
-			if(b<max){
+			if(b < max){
 				requestAnimationFrame(jAnimate);
 			}else{
 				context.closePath();
 				flag = false;
 			}
 		}
-		// 伯努利双纽线 正负曲线一起画
+		// 伯努利双纽线动画函数 正负曲线一起画
 		function jMinusAnimate(){
-			if (b==-bnmax) {
-				context.moveTo(rx+mx(b,fun(b)),ry+my(b,fun(b)));
+			if (b == -bnmax) {
+				context.moveTo(rx + mx(b, fun(b)),ry + my(b, fun(b)));
 			}
-			b=b+rate;
-			context.lineTo(rx+mx(b,fun(b)),ry+my(b,fun(b)));
-			px = mx(b,fun(b));
-			py = my(b,fun(b));
+			b = b + rate;
+			context.lineTo(rx + mx(b, fun(b)), ry + my(b, fun(b)));
+			px = mx(b, fun(b));
+			py = my(b, fun(b));
 			context.stroke();
 
 			if(b<bnmax){
@@ -190,11 +204,11 @@
 			}
 		}
 		function jPlusAnimate(){
-			b=b-rate;
-			context.lineTo(rx+x(b,fun(b)),ry+y(b,fun(b)));
+			b = b - rate;
+			context.lineTo(rx + x(b, fun(b)),ry + y(b, fun(b)));
 			context.stroke();
-			px = x(b,fun(b));
-			py = y(b,fun(b));
+			px = x(b, fun(b));
+			py = y(b, fun(b));
 			if(b>-bnmax){
 				requestAnimationFrame(jPlusAnimate);
 			}else{
@@ -202,16 +216,16 @@
 				flag = false;
 			}
 		}
-		// 星形线
+		// 星形线动画函数
 		function jStarAnimate(){
-			if (b==0) {
+			if (b == 0) {
 				context.moveTo(rx+jx2(b),ry+jy2(b));
 			}
-			b=b+rate;
+			b = b + rate;
 			context.lineTo(rx+jx2(b),ry+jy2(b));
 			context.stroke();
 
-			if(b<360){
+			if(b < 360){
 				requestAnimationFrame(jStarAnimate);
 			}else{
 				context.closePath();
@@ -221,56 +235,57 @@
 
 		//心形线
 		function j1(o){
-			return 100*(1-Math.cos(o*Math.PI/180));
+			return 100 * (1 - Math.cos(o * Math.PI / 180));
 		}
 		
 		function jx2(o){
-			return 100*Math.pow(Math.cos(o*Math.PI/180),3);
+			return 100 * Math.pow(Math.cos(o * Math.PI / 180), 3);
 		}
-		//极坐标系下的函数 星形线y坐标
+		//极坐标系下的函数 获取星形线y坐标
 		function jy2(o){
-			return 100*Math.pow(Math.sin(o*Math.PI/180),3);
+			return 100 * Math.pow(Math.sin(o * Math.PI / 180),3);
 		}
 		//极坐标系下的函数 伯努利双纽线 正负曲线
 		function j3(o){
-			return 	Math.sqrt(40000*Math.cos(2*o*Math.PI/180));
+			return 	Math.sqrt(40000 * Math.cos(2 * o * Math.PI / 180));
 		}
 		//极坐标系下的函数 玫瑰线 k=2
 		function j4(o){
-			return 200*Math.cos(2*o*Math.PI/180);
+			return 200 * Math.cos(2 * o * Math.PI / 180);
 		}
 		//极坐标系下的函数 玫瑰线 k=3
 		function j5(o){
-			return 200*Math.cos(3*o*Math.PI/180);
+			return 200 * Math.cos(3 * o * Math.PI / 180);
 		}
 		//极坐标系下的函数 玫瑰线 k=6
 		function j9(o){
-			return 200*Math.cos(6*o*Math.PI/180);
+			return 200 * Math.cos(6 * o * Math.PI / 180);
 		}
 		//极坐标系下的函数 阿基米德螺线
 		function j6(o){
-			return 10*o*Math.PI/180;
+			return 10 * o * Math.PI / 180;
 		}
 		//极坐标系下的函数 对数螺线
 		function j7(o){
-			return Math.pow(Math.E,0.3*o*Math.PI/180);
+			return Math.pow(Math.E, 0.3 * o * Math.PI / 180);
 		}
 		//极坐标系下的函数 双曲螺线
 		function j8(o){
-			return 10000/o*Math.PI;
+			return 10000 / o * Math.PI;
 		}
 		//极坐标转x/y坐标 
-		function x(o,p){
-			return p*Math.cos(o*Math.PI/180);
+		function x(o, p){
+			return p * Math.cos(o * Math.PI / 180);
 		}
-		function y(o,p){
-			return p*Math.sin(o*Math.PI/180);
+		function y(o, p){
+			return p * Math.sin(o * Math.PI / 180);
 		}
-		function mx(o,p){
-			return -p*Math.cos(o*Math.PI/180);
+		//极坐标转x/y坐标 负坐标系
+		function mx(o, p){
+			return -p * Math.cos(o * Math.PI / 180);
 		}
-		function my(o,p){
-			return -p*Math.sin(o*Math.PI/180);
+		function my(o, p){
+			return -p * Math.sin(o * Math.PI / 180);
 		}
 		//清空画布
 		function clear(){
