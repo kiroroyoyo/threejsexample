@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=750 user-scalable=no">
+	<style>
+	  * {
+	    margin: 0;
+	  }
+	</style>
+	<title>demo</title>
+</head>
+<body>
+		<div id="container"></div>
+		<script src="js/three.js"></script>
+		<script src="js/Projector.js"></script>
+		<script src="js/CanvasRenderer.js"></script>
+
+		<script>
+			var Page = {
+				WIDTH : window.innerWidth,
+				HEIGHT : window.innerHeight,
+				sprites : [],
+				groups : [],
+
+				generateSprite : function(type){
+					var canvas = document.createElement( 'canvas' );
+					canvas.width = 60;
+					canvas.height = 60;
+
+					var context = canvas.getContext( '2d' );
+					var grd=context.createLinearGradient(0,0,canvas.width,canvas.height);
+					if (type == 'blue') {
+						grd.addColorStop(0,"#55FFE7");
+						grd.addColorStop(0.13,"#55FFE7");
+						grd.addColorStop(1,"#069FFF");
+					}else{
+						grd.addColorStop(0,"#FFA2F9");
+						grd.addColorStop(0.13,"#FFA2F9");
+						grd.addColorStop(1,"#D155FF");
+					}
+
+					context.fillStyle = grd;
+					context.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, 2*Math.PI);
+					context.fill();
+					return canvas;
+				},
+
+				centerSprite : function(){
+					var canvas = document.createElement( 'canvas' );
+					canvas.width = 200;
+					canvas.height = 200;
+					var context = canvas.getContext( '2d' );
+					var gradient = context.createRadialGradient( canvas.width * 0.69, canvas.height * 0.80, 0, canvas.width / 1.5, canvas.height / 1.5, canvas.width / 1.2 );
+					gradient.addColorStop( 0, '#FFAA3B' );
+					gradient.addColorStop( 0.21, '#FFAA3B' );
+					gradient.addColorStop( 0.69, '#FFD54D' );
+					gradient.addColorStop( 1, '#FFEF98' );
+
+					context.fillStyle = gradient;
+					context.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, 2*Math.PI);
+					context.fill();
+					context.closePath();
+
+					context.beginPath();
+					context.fillStyle = '#FAA04C';
+					var h1 = canvas.height * 0.42;
+					var h2 = canvas.height * 0.32;
+					var w = canvas.width * 0.31;
+					var r = 12;
+					var w1 = w + r;
+					var w2 = canvas.width - w - r;
+
+					context.arc(w1, h1, r, 0, Math.PI);
+					context.arc(w1, h2, r, Math.PI, 2*Math.PI);
+					context.fillRect( w, h2, 24, h1 - h2 );
+					context.fill();
+					context.closePath();
+
+					context.beginPath();
+					context.fillStyle = '#FAA04C';
+					context.arc(w2, h1, r, 0, Math.PI);
+					context.arc(w2, h2, r, Math.PI, 2*Math.PI);
+					context.fillRect( w2 - r, h2, 24, h1 - h2 );
+					context.fill();
+					context.closePath();
+
+					return canvas;
+				},
+
+
+				createLayer : function(radius, num, size){
+					//创建平面获取坐标
+					var group = new THREE.Group();
+					var geometry = new THREE.CircleGeometry( radius, num );
+					var vl = geometry.vertices.length;
+					var that = this;
+					for ( var i = 1; i < vl; i++ ) {
+						//为每个点附上材质
+						var particle = new THREE.Sprite( Math.floor ( Math.random ( ) * 10 + 1 ) < 7 ? that.blueMaterial : that.pinkMaterial );
+						particle.position.x = geometry.vertices[i].x;
+						particle.position.y = geometry.vertices[i].y;
+						particle.position.z = geometry.vertices[i].z;
+						particle.scale.setScalar(size);
+						this.sprites.push(particle);
+						group.add( particle );
+					}
+					this.scene.add( group );
+					this.groups.push(group);
+
+				},
+
+				//计算camera位置
+				computeCamera: function(distance, deg){
+					this.camera.position.x = 3;
+					this.camera.position.z = distance * Math.cos(deg);
+					this.camera.position.y = -distance * Math.sin(deg);
+					this.camera.rotation.x = deg;
+					this.camera.rotation.z = -Math.PI/5;
+				},
+
+				init: function(){
+
+					
+					this.renderer = new THREE.CanvasRenderer( { antialias: true } );
+					this.scene = new THREE.Scene();
+					this.camera = new THREE.PerspectiveCamera( 60, this.WIDTH / this.HEIGHT, 1, 200 );
+
+					this.computeCamera(90, Math.PI/4);
+
+					//创建材质
+					var that = this;
+					this.centerMaterial = new THREE.SpriteMaterial( {
+						map: new THREE.CanvasTexture( that.centerSprite() ),
+						blending: THREE.AdditiveBlending
+					} );
+					this.blueMaterial = new THREE.SpriteMaterial( {
+						map: new THREE.CanvasTexture( that.generateSprite('blue') ),
+						blending: THREE.AdditiveBlending
+					} );
+
+					this.pinkMaterial = new THREE.SpriteMaterial( {
+						map: new THREE.CanvasTexture( that.generateSprite('pink') ),
+						blending: THREE.AdditiveBlending
+					} );
+					
+					//创建中心
+					var center = new THREE.Sprite( that.centerMaterial );
+					center.position.x = 0;
+					center.position.y = 0;
+					center.position.z = 0;
+					center.scale.setScalar(10);
+					this.scene.add( center );
+
+					//创建平面1
+					this.createLayer(18, 8, 2);
+					//创建平面2
+					this.createLayer(28, 12, 1.2);
+					//创建平面3
+					this.createLayer(38, 14, 1.2);
+
+
+
+					this.renderer.setPixelRatio( window.devicePixelRatio );
+					this.renderer.setSize( this.WIDTH, this.HEIGHT );
+					var container = document.getElementById( 'container' );
+					container.appendChild( this.renderer.domElement );
+					this.renderer.render( this.scene, this.camera );
+				},
+				animate : function(){
+					requestAnimationFrame( this.animate.bind(this) );
+					this.render();
+				},
+				render : function(){
+					var time = Date.now() * 0.001 - 1540988126;
+					for ( var i = 0; i < this.groups.length; i ++ ) {
+						var group = this.groups[ i ];
+						group.rotation.z = 0.1 * time / (i + 1);
+					}
+					this.renderer.render( this.scene, this.camera );
+				}
+				
+
+
+
+			}
+
+
+
+			Page.init();
+			Page.animate();
+
+	</script>
+
+</body>
+</html>
